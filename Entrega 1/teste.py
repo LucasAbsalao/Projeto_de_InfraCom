@@ -16,41 +16,15 @@ client = Client(skt.AF_INET, skt.SOCK_DGRAM, addr_bind, MAX_BUFF_SIZE)
 '''
 PARTE 1: ENVIANDO UM ARQUIVO .TXT
 '''
+name_file = "song.txt"
 
-f = open("song.txt", "r")
-lyrics = f.read()
-lyrics_b = lyrics.encode()
+client.send_file(name_file, addr_target)
 
-packets = []
-j = k = 0
-packets.append(bytearray())
+server.listen_file("arquivo_no_servidor.txt",addr_bind)
 
-# Quebrando o .txt em pacotes de 1024 Bytes
+server.send_file("arquivo_no_servidor.txt", addr_bind)
 
-for i in lyrics_b:
-    if j < MAX_BUFF_SIZE:
-        packets[k].append(i)
-        j += 1
-    else:
-        j = 0
-        k += 1
-        packets.append(bytearray())
-
-#Enviando cada um dos pacotes
-for i in packets:
-    client.send(addr_target, i)
-
-#Enviando um sinal de pausa para o server para de ouvir quando receber o arquivo inteiro
-client.send(addr_target, "PAUSE".encode())
-
-#Server recebe os pacotes e envia de volta para o cliente
-server.listen(addr_target)
-for i in server.storage:
-    server.send(addr_bind, i)
-server.send(addr_bind, "PAUSE".encode())
-
-#Cliente recebe os pacotes de volta
-client.listen(addr_bind)
+client.listen_file("arquivo_de_volta_no_cliente.txt", addr_target)
 
 client.close()
 server.close()
