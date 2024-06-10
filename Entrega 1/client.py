@@ -38,9 +38,8 @@ class Client():
 
     def send_file(self, name_file: str, server_addr: tuple[str, int]):
 
-        f = open(name_file, "r")
-        text = f.read()
-        text_b = text.encode()
+        f = open(name_file, "rb")
+        data = f.read()
         f.close()
 
         packets = []
@@ -49,7 +48,7 @@ class Client():
 
         # Quebrando o arquivo em pacotes de 1024 Bytes
 
-        for i in text_b:
+        for i in data:
             if j < self.MAX_BUFF:
                 packets[k].append(i)
                 j += 1
@@ -57,10 +56,13 @@ class Client():
                 j = 0
                 k += 1
                 packets.append(bytearray())
+                packets[k].append(i)
+
 
         # Enviando cada um dos pacotes
         for i in packets:
             self.send(server_addr, i)
+            print(i)
 
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro
         self.send(server_addr, "PAUSE".encode())

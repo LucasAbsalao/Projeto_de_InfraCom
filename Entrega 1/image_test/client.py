@@ -38,9 +38,8 @@ class Client():
 
     def send_file(self, name_file: str, server_addr: tuple[str, int]):
 
-        f = open(name_file, "r")
-        text = f.read()
-        text_b = text.encode()
+        f = open(name_file, "rb")
+        data = f.read()
         f.close()
 
         packets = []
@@ -49,7 +48,7 @@ class Client():
 
         # Quebrando o arquivo em pacotes de 1024 Bytes
 
-        for i in text_b:
+        for i in data:
             if j < self.MAX_BUFF:
                 packets[k].append(i)
                 j += 1
@@ -71,11 +70,12 @@ class Client():
         # remontando o arquivo
 
         new_file = Path(name_file)
-        text = ""
+        data = bytearray()
         for i in self.storage:
-            text += i.decode()
+            data += i
 
-        new_file.write_text(text)
+        with new_file.open('wb') as file:
+            file.write(data)
 
     def close(self):
         self.sckt.close()
