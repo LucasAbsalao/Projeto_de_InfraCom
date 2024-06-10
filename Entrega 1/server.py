@@ -19,16 +19,15 @@ class Server():
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
-                if data.decode() == "STOP":
+                if str(data) == "b'STOP'":
                     self.send(server_addr, "Saindo".encode())
                     self.sckt.close()
                     break
-                elif data.decode() == "PAUSE":
+                elif str(data) == "b'PAUSE'":
                     break
                 else:
                     self.storage.append(data)
                     print("PACOTE ARMAZENADO NO SERVIDOR!")
-
             except:
                 continue
 
@@ -39,9 +38,8 @@ class Server():
 
     def send_file(self, name_file: str, server_addr: tuple[str, int]):
 
-        f = open(name_file, "r")
-        text = f.read()
-        text_b = text.encode()
+        f = open(name_file, "rb")
+        data = f.read()
         f.close()
 
         packets = []
@@ -50,14 +48,15 @@ class Server():
 
         # Quebrando o arquivo em pacotes de 1024 Bytes
 
-        for i in text_b:
+        for i in data:
             if j < self.MAX_BUFF:
                 packets[k].append(i)
                 j += 1
             else:
-                j = 0
+                j = 1
                 k += 1
                 packets.append(bytearray())
+                packets[k].append(i)
 
         # Enviando cada um dos pacotes
         for i in packets:
@@ -66,18 +65,18 @@ class Server():
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro
         self.send(server_addr, "PAUSE".encode())
 
-    def listen_file(self, name_file, addr_bind,):
+    def listen_file(self, name_file, addr_bind):
         self.listen(addr_bind)
 
         #remontando o arquivo
 
         new_file = Path(name_file)
-        text = ""
+        data = bytearray()
         for i in self.storage:
-            text += i.decode()
+            data += i
 
-
-        new_file.write_text(text)
+        with new_file.open('wb') as file:
+            file.write(data)
 
     def close(self):
         self.sckt.close()
