@@ -54,13 +54,14 @@ class Server():
                 packets[k].append(i)
                 j += 1
             else:
-                j = 0
+                j = 1
                 k += 1
                 packets.append(bytearray())
                 packets[k].append(i)
 
         # Enviando cada um dos pacotes
         for i in packets:
+            print(len(i))
             self.send(server_addr, i)
 
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro

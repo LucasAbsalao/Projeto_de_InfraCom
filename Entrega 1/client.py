@@ -53,7 +53,7 @@ class Client():
                 packets[k].append(i)
                 j += 1
             else:
-                j = 0
+                j = 1
                 k += 1
                 packets.append(bytearray())
                 packets[k].append(i)
@@ -62,6 +62,7 @@ class Client():
         # Enviando cada um dos pacotes
         for i in packets:
             self.send(server_addr, i)
+            print(len(i))
             print(i)
 
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro
