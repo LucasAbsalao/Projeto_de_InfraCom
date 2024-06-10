@@ -19,15 +19,15 @@ class Client():
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
-                if data.decode() == "STOP":
+                if str(data) == "b'STOP'":
                     self.send(server_addr, "Saindo".encode())
                     self.sckt.close()
                     break
-                elif data.decode() == "PAUSE":
+                elif str(data) == "b'PAUSE'":
                     break
                 else:
                     self.storage.append(data)
-                    print("PACOTE RECEBIDO NO CLIENTE!")
+                    print("PACOTE ARMAZENADO NO SERVIDOR!")
             except:
                 continue
 
@@ -62,8 +62,6 @@ class Client():
         # Enviando cada um dos pacotes
         for i in packets:
             self.send(server_addr, i)
-            print(len(i))
-            print(i)
 
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro
         self.send(server_addr, "PAUSE".encode())
@@ -74,11 +72,12 @@ class Client():
         # remontando o arquivo
 
         new_file = Path(name_file)
-        text = ""
+        data = bytearray()
         for i in self.storage:
-            text += i.decode()
+            data += i
 
-        new_file.write_text(text)
+        with new_file.open('wb') as file:
+            file.write(data)
 
     def close(self):
         self.sckt.close()

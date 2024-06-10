@@ -19,16 +19,15 @@ class Server():
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
-                if data.decode() == "STOP":
+                if str(data) == "b'STOP'":
                     self.send(server_addr, "Saindo".encode())
                     self.sckt.close()
                     break
-                elif data.decode() == "PAUSE":
+                elif str(data) == "b'PAUSE'":
                     break
                 else:
                     self.storage.append(data)
                     print("PACOTE ARMAZENADO NO SERVIDOR!")
-
             except:
                 continue
 
@@ -61,7 +60,6 @@ class Server():
 
         # Enviando cada um dos pacotes
         for i in packets:
-            print(len(i))
             self.send(server_addr, i)
 
         # Enviando um sinal de pausa para o server parar de ouvir quando receber o arquivo inteiro
