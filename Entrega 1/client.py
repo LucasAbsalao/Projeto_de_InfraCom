@@ -27,7 +27,7 @@ class Client():
                     break
                 else:
                     self.storage.append(data)
-                    print("PACOTE ARMAZENADO NO SERVIDOR!")
+                    print("PACOTE ARMAZENADO NO CLIENTE!")
             except:
                 continue
 
@@ -67,6 +67,7 @@ class Client():
         self.send(server_addr, "PAUSE".encode())
 
     def listen_file(self, name_file, addr_bind, ):
+        self.storage = []
         self.listen(addr_bind)
 
         # remontando o arquivo

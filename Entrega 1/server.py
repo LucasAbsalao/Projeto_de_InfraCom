@@ -34,7 +34,7 @@ class Server():
     def send(self, server_addr: tuple[str, int], msg: bytes):
         self.sckt.sendto(msg, server_addr)
         time.sleep(0.0001)
-        print("PACOTE ENVIADO PELO SERVER!")
+        print("PACOTE ENVIADO PELO SERVIDOR!")
 
     def send_file(self, name_file: str, server_addr: tuple[str, int]):
 
@@ -66,6 +66,7 @@ class Server():
         self.send(server_addr, "PAUSE".encode())
 
     def listen_file(self, name_file, addr_bind):
+        self.storage = []
         self.listen(addr_bind)
 
         #remontando o arquivo
