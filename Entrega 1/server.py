@@ -15,7 +15,8 @@ class Server():
 
         self.MAX_BUFF = MAX_BUFF
 
-    def listen(self, server_addr: tuple[str, int]):
+    def listen(self, name_file: str, server_addr: tuple[str, int]):
+        f = open(name_file, "ab")
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
@@ -24,9 +25,12 @@ class Server():
                     self.sckt.close()
                     break
                 elif str(data) == "b'PAUSE'":
+                    f.close()
                     break
                 else:
-                    self.storage.append(data)
+                    #self.storage.append(data)
+                    f.write(data)
+                    print(self.storage)
                     print("PACOTE ARMAZENADO NO SERVIDOR!")
             except:
                 continue
@@ -67,17 +71,17 @@ class Server():
 
     def listen_file(self, name_file, addr_bind):
         self.storage = []
-        self.listen(addr_bind)
+        self.listen(name_file, addr_bind)
 
         #remontando o arquivo
 
-        new_file = Path(name_file)
+    ''' new_file = Path(name_file)
         data = bytearray()
         for i in self.storage:
             data += i
 
         with new_file.open('wb') as file:
-            file.write(data)
+            file.write(data)'''
 
     def close(self):
         self.sckt.close()
