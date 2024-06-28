@@ -16,6 +16,7 @@ class Client():
         self.MAX_BUFF = MAX_BUFF
 
     def listen(self, server_addr: tuple[str, int]):
+        cont=0
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
@@ -27,6 +28,8 @@ class Client():
                     break
                 else:
                     self.storage.append(data)
+                    cont += 1
+                    print(cont)
                     print("PACOTE ARMAZENADO NO CLIENTE!")
             except:
                 continue
@@ -57,7 +60,7 @@ class Client():
                 k += 1
                 packets.append(bytearray())
                 packets[k].append(i)
-
+        print(k+1)
 
         # Enviando cada um dos pacotes
         for i in packets:

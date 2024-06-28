@@ -70,7 +70,7 @@ server = Server(skt.AF_INET, skt.SOCK_DGRAM, addr_target, MAX_BUFF_SIZE)
 client = Client(skt.AF_INET, skt.SOCK_DGRAM, addr_bind, MAX_BUFF_SIZE)
 '''
 
-name_file = "Assets/loboCuidadesuloba.jpg"
+name_file = "Assets/teste2.png"
 server_doc_path = "servidor_docs/arquivo_imagem_no_servidor.png"
 client_doc_path = "cliente_docs/arquivo_imagem_de_volta_no_cliente.png"
 

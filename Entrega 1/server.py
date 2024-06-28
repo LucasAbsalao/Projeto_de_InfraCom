@@ -17,6 +17,7 @@ class Server():
 
     def listen(self, name_file: str, server_addr: tuple[str, int]):
         f = open(name_file, "ab")
+        cont = 0
         while True:
             try:
                 data, origin = self.sckt.recvfrom(self.MAX_BUFF)
@@ -30,7 +31,10 @@ class Server():
                 else:
                     #self.storage.append(data)
                     f.write(data)
-                    print(self.storage)
+                    print(data)
+                    cont += 1
+                    print(cont)
+                    #print(self.storage)
                     print("PACOTE ARMAZENADO NO SERVIDOR!")
             except:
                 continue
