@@ -126,7 +126,6 @@ class socketUdp():
 
         print("\nFim enviado")
         print('Arquivo totalmente enviado!')
-        self.sckt.close()
 
     def listen_file(self, name_file): #Recebe o arquivo e o coloca no path de name_file
 
@@ -148,7 +147,6 @@ class socketUdp():
 
             if self.endPoint == True:  # Mensagem de tchau
                 print("\nFim recebido")
-                self.sckt.close()
                 break
             elif data != b'':
                 numPacote += 1
