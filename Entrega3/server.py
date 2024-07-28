@@ -25,7 +25,7 @@ while True:
     elif(data[0] == 2):#create
         print(data[1:].decode(), "quer criar acomodação")
         socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
-        indexAccomodation+=1
+        indexAccomodation=indexAccomodation+1
         print(socket0.accomodations)
 
     #elif(data[0] == 3):

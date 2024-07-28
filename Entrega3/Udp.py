@@ -79,7 +79,7 @@ class socketUdp():
         
         if(aux):
             self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationAble, clientID]
-            self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + "foi criada com sucesso").encode())
+            self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
 
 
 
@@ -108,18 +108,18 @@ class socketUdp():
 
         while True:
             self.sendMsg(server_addr, (self.seqNumber).to_bytes() + msg)  # Concatena o número de sequência ao início da mensagem
-            print("Remetente: enviando seq ", self.seqNumber, "\nEsperando confirmação")
+            #print("Remetente: enviando seq ", self.seqNumber, "\nEsperando confirmação")
 
             ans, origin = self.recMsg()  # Espera pela confirmação
 
-            # print("Cliente: ", ans[0])
+            print("Cliente: ", ans[0])
             if ans[0] == self.seqNumber:
-                print("Remetente: Ack recebido ", self.seqNumber)
+                #print("Remetente: Ack recebido ", self.seqNumber)
                 break  # Confirmação recebida
-            if ans[0] == 255:
-                print("Timeout!\nPronto para reenviar")
-            else:
-                print("Número de sequência errado, reenviar")
+            # if ans[0] == 255:
+            #    print("Timeout!\nPronto para reenviar")
+            #else:
+             #   print("Número de sequência errado, reenviar")
 
     def rdtRcv(self):
 
@@ -132,12 +132,12 @@ class socketUdp():
             if data[0] == self.seqNumber:  # Número de sequência esperado
                 # Envia a confirmação
                 self.sendMsg(origin, (self.seqNumber).to_bytes(1, 'big'))
-                print("Destinatário: pacote recebido com sucesso\nEnviando ack: ", self.seqNumber)
+                #print("Destinatário: pacote recebido com sucesso\nEnviando ack: ", self.seqNumber)
                 return data[1:], origin  # Retorna os dados sem o número de sequência
             else:
                 # Retransmite o último ACK para sinalizar o remetente
                 if (origin != "Null"):
-                    print("Destinatário: pacote recebido com erro\nEnviando ack anterior: ", 1 - self.seqNumber)
+                    #print("Destinatário: pacote recebido com erro\nEnviando ack anterior: ", 1 - self.seqNumber)
                     self.sendMsg(origin, (1 - self.seqNumber).to_bytes(1, 'big'))
 
     # ============================================================================================

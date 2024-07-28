@@ -2,8 +2,9 @@ import Udp
 
 
 addr = ('127.0.0.1',5559)
-socket0 = Udp.socketUdp("127.0.0.1", 2426, 1024)
+socket0 = Udp.socketUdp("127.0.0.1", 2428, 1024)
 auxID= 0
+clientName=""
 
 while True:
 
@@ -31,7 +32,6 @@ while True:
           socket0.rdtSend(addr, b'\x02' + auxID.to_bytes(1, 'big') + message.encode())
           data, origin = socket0.rdtRcv()
           print(data.decode())
-
 
     elif (comand == "quit"):
         break
