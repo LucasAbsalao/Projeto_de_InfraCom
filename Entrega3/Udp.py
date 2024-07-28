@@ -11,7 +11,7 @@ class socketUdp():
         self.sckt.bind((endereco, porta))
         self.sckt.settimeout(1)  # Timeout configurado para 1 segundo
         self.clients={}
-        self.accommodations ={}
+        self.accomodations ={}
         self.seqNumber = 1
 
 
@@ -43,9 +43,9 @@ class socketUdp():
            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
 
     def logout(self, username,clientID, server_addr):
-        username = self.get_username(server_addr)
-        if username:
-            del self.clients[clientID]
+        username = self.get_username(clientID)
+        if username!= None:
+            del self.clients[clientID-1]
             self.rdtSend(server_addr, "Usuario removido com sucesso".encode())
         else:
             self.rdtSend(server_addr, "Usuario não encontrado".encode())
@@ -56,12 +56,33 @@ class socketUdp():
                 return cliente[0]
         return None
     
-    def createAccomodations(self,accomadationName,accomodationID,accomodationAble, server_addr):
-        if accomodationID in self.accommodations:
-            self.rdtSend(server_addr, "Acomodação já está cadastrada".encode())
-        else:
-            self.accommodations.append([accomadationName,accomodationID,accomodationAble])
-            self.rdtSend(server_addr, "Acomodação cadastrada".encode())
+    def createAccomodations(self,accomodationsInfo,clientID, accomodationID,server_addr):
+        accomodationName=""
+        accomodationLocal= ""
+        accomodationAble=""
+        flag=0
+        for letter in accomodationsInfo:
+            if(letter!='#'):
+                if(flag==0):
+                    accomodationName+=letter
+                elif(flag==1):
+                    accomodationLocal+=letter
+                else:
+                    accomodationAble+=letter
+            else:
+                flag+=1
+        aux=True
+        for accomodation in self.accomodations.values():
+            if(accomodationName== accomodation[0]):
+                self.rdtSend(server_addr, "acomodação já foi criada".encode())
+                aux = False
+        
+        if(aux):
+            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationAble, clientID]
+            self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + "foi criada com sucesso").encode())
+
+
+
 
         
     

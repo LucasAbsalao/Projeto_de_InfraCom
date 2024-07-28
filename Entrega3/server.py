@@ -1,8 +1,9 @@
 import Udp
 
 
-socket0 = Udp.socketUdp("127.0.0.1", 5557, 1024)
-index=0
+socket0 = Udp.socketUdp("127.0.0.1", 5559, 1024)
+indexCliente=0
+indexAccomodation=0
 
 while True:
 
@@ -11,16 +12,21 @@ while True:
 
     if(data[0] == 0):   #login
         print( data[1:].decode(), "quer fazer login")
-        socket0.login(data[1:].decode(),index,origin)
-        index=index+1
+        socket0.login(data[1:].decode(),indexCliente,origin)
+        indexCliente=indexCliente+1
         print(socket0.clients)
        ## socket0.rdtSend(origin, "Foi".encode())
 
     elif(data[0] == 1): #logout
         print(data[1:].decode(), "usuario saindo")
-        socket0.logout(data[1:].decode(), origin)
+        socket0.logout(data[1:].decode(), indexCliente,origin)
+        print(socket0.clients)
 
-    #elif(data[0] == 2):
+    elif(data[0] == 2):#create
+        print(data[1:].decode(), "quer criar acomodação")
+        socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
+        indexAccomodation+=1
+        print(socket0.accomodations)
 
     #elif(data[0] == 3):
 
