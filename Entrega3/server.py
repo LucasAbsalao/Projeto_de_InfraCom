@@ -7,13 +7,12 @@ indexAccomodation=0
 
 while True:
 
-    data, origin = socket0.rdtRcv();
+    data, origin = socket0.rdtRcv()
     print(data)
 
     if(data[0] == 0):   #login
         print( data[1:].decode(), "quer fazer login")
-        socket0.login(data[1:].decode(),indexCliente,origin)
-        indexCliente=indexCliente+1
+        indexCliente=indexCliente+socket0.login(data[1:].decode(),indexCliente,origin)
         print(socket0.clients)
        ## socket0.rdtSend(origin, "Foi".encode())
 
@@ -24,8 +23,7 @@ while True:
 
     elif(data[0] == 2):#create
         print(data[1:].decode(), "quer criar acomodação")
-        socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
-        indexAccomodation=indexAccomodation+1
+        indexAccomodation = indexAccomodation + socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
         print(socket0.accomodations)
 
     #elif(data[0] == 3):

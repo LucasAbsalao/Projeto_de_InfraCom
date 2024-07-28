@@ -31,16 +31,27 @@ class socketUdp():
 
     def login(self, username,clientID,server_addr):
         print("entrou no login")
-        flag=True
+        flagUsername=True
+        flagIP=True
         for cliente in self.clients.values():
             print(cliente[0])
             if(cliente[0]==username):
-                self.rdtSend(server_addr, "Usuario ja presente na lista".encode())
-                flag=False
+                self.rdtSend(server_addr, clientID.to_bytes(1,'big')+"Usuario ja presente na lista".encode())
+                flagUsername=False
+
+        for clienteID in self.clients.values(): #Mudar o username desse cliente
+            if server_addr == clienteID[2]:
+                self.rdtSend(server_addr, clienteID[1].to_bytes(1,'big')+"Username do client foi trocado".encode())
+                print(clienteID[2])
+                clienteID[0] = username
+                flagIP=False
+
         
-        if(flag):
-           self.clients[clientID]=[username, clientID]
-           self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
+        if flagUsername==True and flagIP == True:
+            self.clients[clientID]= [username, clientID, server_addr]
+            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
+            return 1
+        else: return 0
 
     def logout(self, username,clientID, server_addr):
         username = self.get_username(clientID)
@@ -59,7 +70,7 @@ class socketUdp():
     def createAccomodations(self,accomodationsInfo,clientID, accomodationID,server_addr):
         accomodationName=""
         accomodationLocal= ""
-        accomodationAble=""
+        accomodationAble=[[17,7,2024],[22,7,2024]]
         flag=0
         for letter in accomodationsInfo:
             if(letter!='#'):
@@ -67,21 +78,23 @@ class socketUdp():
                     accomodationName+=letter
                 elif(flag==1):
                     accomodationLocal+=letter
-                else:
-                    accomodationAble+=letter
             else:
                 flag+=1
         aux=True
         for accomodation in self.accomodations.values():
-            if(accomodationName== accomodation[0]):
+            if(accomodationName==accomodation[0] and accomodationLocal==accomodation[1]):
                 self.rdtSend(server_addr, "acomodação já foi criada".encode())
                 aux = False
-        
+
+        occupied = 0
         if(aux):
-            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationAble, clientID]
+            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationAble, clientID, occupied]
             self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
-
-
+            #for clientes in self.clients.values():
+                #if clientes[1]!=clientID:
+                    #self.rdtSend(server_addr, ("["+clientes[0]+"/"+str(clientes[2])+"]" + "acomodação de nome e localização: "+accomodationName+" "+accomodationLocal+"foi criado pelo cliente "+ str(clientID)).encode())
+            return 1
+        else: return 0
 
 
         
