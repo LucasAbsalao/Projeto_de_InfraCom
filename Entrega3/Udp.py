@@ -12,7 +12,9 @@ class socketUdp():
         self.sckt.settimeout(1)  # Timeout configurado para 1 segundo
         self.clients={}
         self.accomodations ={}
+        self.reservas= {}
         self.seqNumber = 1
+        self.numRsv = 0
 
 
         if self.sckt is None:
@@ -31,6 +33,27 @@ class socketUdp():
 
     def login(self, username,clientID,server_addr):
         print("entrou no login")
+        flag=True
+        for cliente in self.clients.values():
+            print(cliente[0])
+            if(cliente[0]==username):
+                if(cliente[2]==True):
+                    self.rdtSend(server_addr, b'\xFF' + "Usuario já está online".encode())
+                else:
+                    cliente[2]=True
+                    cliente[3]=server_addr
+                    self.rdtSend(server_addr,cliente[1].to_bytes(1,'big')+"Usuario ".encode())
+                flag=False
+                break
+
+        if(flag):
+            self.clients[clientID]=[username, clientID, True, server_addr]
+            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
+            return 1
+        return 0
+
+    '''def login(self, username,clientID,server_addr):
+        print("entrou no login")
         flagUsername=True
         flagIP=True
         for cliente in self.clients.values():
@@ -46,18 +69,17 @@ class socketUdp():
                 clienteID[0] = username
                 flagIP=False
 
-        
         if flagUsername==True and flagIP == True:
             self.clients[clientID]= [username, clientID, server_addr]
             self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
             return 1
-        else: return 0
+        else: return 0'''
 
-    def logout(self, username,clientID, server_addr):
+    def logout(self, clientID, server_addr):
         username = self.get_username(clientID)
         if username!= None:
-            del self.clients[clientID-1]
-            self.rdtSend(server_addr, "Usuario removido com sucesso".encode())
+            self.clients[clientID][2]=False
+            self.rdtSend(server_addr, "Usuario desconectado".encode())
         else:
             self.rdtSend(server_addr, "Usuario não encontrado".encode())
 
@@ -67,38 +89,77 @@ class socketUdp():
                 return cliente[0]
         return None
     
-    def createAccomodations(self,accomodationsInfo,clientID, accomodationID,server_addr):
+    def createAccomodations(self,accomodationsData,clientID, accomodationID,server_addr):
         accomodationName=""
         accomodationLocal= ""
-        accomodationAble=[[17,7,2024],[22,7,2024]]
+        accomodationInfo = ""
+
         flag=0
-        for letter in accomodationsInfo:
+        for letter in accomodationsData:
             if(letter!='#'):
                 if(flag==0):
                     accomodationName+=letter
                 elif(flag==1):
                     accomodationLocal+=letter
+                elif(flag==2):
+                    accomodationInfo+=letter
             else:
                 flag+=1
+
         aux=True
         for accomodation in self.accomodations.values():
             if(accomodationName==accomodation[0] and accomodationLocal==accomodation[1]):
                 self.rdtSend(server_addr, "acomodação já foi criada".encode())
                 aux = False
 
-        occupied = 0
         if(aux):
-            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationAble, clientID, occupied]
+            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationInfo, clientID, False, 0]
             self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
             #for clientes in self.clients.values():
                 #if clientes[1]!=clientID:
                     #self.rdtSend(server_addr, ("["+clientes[0]+"/"+str(clientes[2])+"]" + "acomodação de nome e localização: "+accomodationName+" "+accomodationLocal+"foi criado pelo cliente "+ str(clientID)).encode())
             return 1
-        else: return 0
 
+        else:
+            return 0
 
         
+    def listMyRsv(self, server_addr, userID):
+        msg = ""
+        for reserva in self.reservas.values():
+            if (reserva[0] == userID):
+                msg += (self.accomodations[reserva[1]][0] + " - Data: " + str(reserva[2][0]) + "/" + str(reserva[2][1]) + "/" + str(reserva[2][2]) +"\n")
+        self.rdtSend(server_addr, msg.encode())
     
+    def listAcmd(self, server_addr):
+        msg = ""
+        for accomodation in self.accomodations.values():
+            if (accomodation[4] == False):
+                msg += ("(" + str(accomodation[3])  + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
+        self.rdtSend(server_addr, msg.encode())
+
+    def book(self, server_addr, msg):
+        idClt = msg[1] 
+        idAcmd = msg[2]
+        dia = msg[3]
+        mes = msg[4]
+        ano = msg[5] + 2000
+        #nome = msg[6:].decode()
+        nome = "sem nome"
+        
+        flag=True
+        for reserva in self.reservas.values():
+            if(idAcmd == reserva[1]):
+                if((dia,mes,ano) == reserva[2]):
+                    flag = False
+                    break
+        if(flag):
+            self.reservas[self.numRsv] = [idClt, idAcmd, (dia,mes,ano), nome]
+            self.numRsv += 1
+            self.rdtSend(server_addr, "Sua reserva está confirmada".encode())
+        else:
+            self.rdtSend(server_addr, "Não foi possível realizar sua reserva, verifique os dados e tente novamente".encode())
+
      # ============================================================================================
     def sendMsg(self, server_addr: tuple[str, int], msg: bytes):  # Enviar "mensagem"
         self.sckt.sendto(msg, server_addr)
@@ -125,7 +186,7 @@ class socketUdp():
 
             ans, origin = self.recMsg()  # Espera pela confirmação
 
-            print("Cliente: ", ans[0])
+            #print("Cliente: ", ans[0])
             if ans[0] == self.seqNumber:
                 #print("Remetente: Ack recebido ", self.seqNumber)
                 break  # Confirmação recebida
@@ -155,88 +216,5 @@ class socketUdp():
 
     # ============================================================================================
 
-    def send_file(self, name_file: str, server_addr: tuple[str, int]): #Envia o arquivo no path name_file
-
-        with open(name_file, "rb") as f:
-            data = f.read()
-        f.close()
-
-        packets = []
-        j = k = 0
-        packets.append(bytearray())
-
-        # Quebrando o arquivo em pacotes de tamanho Max_Buff-1
-        for i in data:
-            if j < (self.Max_Buff - 1):  # Menos 1 porque é o tamanho do cabeçalho
-                packets[k].append(i)
-                j += 1
-            else:
-                j = 1
-                k += 1
-                packets.append(bytearray())
-                packets[k].append(i)
-
-        print('Enviando arquivo')
-
-        # Enviando cada um dos pacotes com alternância de sequência 0 e 1
-        numPacote = 0
-        seq = 0
-        for packet in packets:
-            print("\nEnviando pacote: ", numPacote)
-            numPacote += 1
-            self.rdtSend(server_addr, packet, seq)
-            seq = 1 - seq  # Alterna entre 0 e 1
-
-        # Enviando um sinal de tchau para o server parar de ouvir quando receber o arquivo inteiro
-        tries = 3
-        bye_msg = 3
-        while True:
-            self.sendMsg(server_addr, bye_msg.to_bytes(1, 'big'))
-            print("\nEnviando pacote: ", numPacote, "\nPedido de encerramento enviado")
-            ans, origin = self.recMsg()
-            if ans[0] == 3:
-                print("Confirmação de fim recebida")
-                break
-            if tries == 0:
-                break
-            tries -= 1
-
-        print("\nFim enviado")
-        print('Arquivo totalmente enviado!')
-
-    def listen_file(self, name_file): #Recebe o arquivo e o coloca no path de name_file
-
-        self.endPoint = False
-        print('Recebendo arquivo')
-
-        storage = bytearray()
-
-        numPacote = 0
-        numPacoteConf = 0
-        ack = 0
-        while True:
-
-            if(numPacote == numPacoteConf):
-                print("\nRecebendo pacote: ", numPacote)
-                numPacoteConf += 1
-
-            data = self.rdtRcv(ack)
-
-            if self.endPoint == True:  # Mensagem de tchau
-                print("\nFim recebido")
-                break
-            elif data != b'':
-                numPacote += 1
-                storage += data
-                ack = 1 - ack  # Troca o proximo ack
-
-        # Remontando o arquivo
-        new_file = Path(name_file)
-        with new_file.open('wb') as file:
-            file.write(storage)
-
-        print('Arquivo (supostamente) recebido com sucesso!')
-
-# ============================================================================================
 
 
