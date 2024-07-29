@@ -113,7 +113,7 @@ class socketUdp():
                 aux = False
 
         if(aux):
-            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationInfo, clientID, False, 0]
+            self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationInfo, clientID]
             self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
             #for clientes in self.clients.values():
                 #if clientes[1]!=clientID:
@@ -144,8 +144,7 @@ class socketUdp():
         dia = msg[3]
         mes = msg[4]
         ano = msg[5] + 2000
-        #nome = msg[6:].decode()
-        nome = "sem nome"
+        nome = msg[6:].decode()
         
         flag=True
         for reserva in self.reservas.values():
