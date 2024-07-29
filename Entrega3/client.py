@@ -2,7 +2,7 @@ import Udp
 
 
 addr = ('127.0.0.1',5576)
-socket0 = Udp.socketUdp("127.0.0.1", 7494, 1024)
+socket0 = Udp.socketUdp("127.0.0.1", 7404, 1024)
 auxID= 0
 logged = False
 

@@ -134,8 +134,7 @@ class socketUdp():
     def listAcmd(self, server_addr):
         msg = ""
         for accomodation in self.accomodations.values():
-            if (accomodation[4] == False):
-                msg += ("(" + str(accomodation[3])  + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
+            msg += ("(" + str(accomodation[3])  + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
         self.rdtSend(server_addr, msg.encode())
 
     def book(self, server_addr, msg):
