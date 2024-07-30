@@ -3,7 +3,7 @@ import Udp
 
 addr = ('127.0.0.1',5576)
 socket0 = Udp.socketUdp("127.0.0.1", 7404, 1024)
-auxID= 0
+auxID = 0
 logged = False
 
 while True:
@@ -58,7 +58,9 @@ while True:
     elif(comand == "list:acmd"):
         socket0.rdtSend(addr, b'\x04')
         data, origin = socket0.rdtRcv()
-        print("Locais disponíveis:\n", data.decode(), "-------------------")
+        print("Locais disponíveis:\n")
+        print(data.decode())
+        print("-------------------")
 
     elif(comand == "book"):
 
@@ -111,9 +113,18 @@ while True:
         else:
             print("Você precisa de uma conta para realizar a ação, faça login")
 
+    elif (comand == "cancel"):
+        if(logged):
+            accomodationID = input("Digite o ID da acomodação: ")
+            dia = input("Digite o dia da acomodação: ")
+            mes = input("Digite o mes da acomodação: ")
+            ano = input("Digite o ano da acomodação: ")
+            date = dia + mes + ano
+            socket0.rdtSend(addr, b'\x06' + auxID.to_bytes(1, 'big') + date.encode() + accomodationID.encode())
+
     elif (comand == "quit"):
         if(logged):
-            socket0.rdtSend(addr, b'\x01' + auxID.to_bytes(1, 'big'))
+            socket0.rdtSend(addr, b'\x01' + auxID.to_bytes(1, 'big') )
             data, origin = socket0.rdtRcv()
             print(data.decode())
         break

@@ -36,7 +36,13 @@ while True:
         print("pedido de reseva")
         socket0.book(origin, data)
 
-    #elif(data[0] == 6):
+    elif(data[0] == 6):
+        datas = data[2:].decode()
+        datanf = datas[:8]
+        dataf = (int(datanf[:2]), int(datanf[2:4]), int(datanf[4:]))
+        print("pedido de cancelamento")
+        print("FUDIDO: ", datas[8])
+        socket0.cancel(data[1], datas[8], dataf, origin)
 
     print("Contas: ", socket0.clients)
     print("Acomodações: ", socket0.accomodations)

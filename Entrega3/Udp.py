@@ -88,6 +88,23 @@ class socketUdp():
             if cliente[1] == clientID:
                 return cliente[0]
         return None
+
+    def cancel(self, clientID, accomodationID, date, server_addr):
+        print("Iniciando Cancelamento")
+        name = self.clients[clientID][0]
+        flag = False
+        for rsv in self.reservas.items():
+            if (rsv[1][1]==int(accomodationID) and rsv[1][3]==name and rsv[1][2]==date):
+                del self.reservas[rsv[0]]
+                flag = True
+                break
+        if(flag):
+            msg = name + "/" + str(server_addr[0]) + str(server_addr[1]) + "\n A reserva da acomodação" + str(accomodationID) + "na data" + str(date) + "foi cancelada!"
+            print(msg)
+        else:
+            msg = "Reserva não Encontrada"
+            print(msg)
+
     
     def createAccomodations(self,accomodationsData,clientID, accomodationID,server_addr):
         accomodationName=""
@@ -133,8 +150,8 @@ class socketUdp():
     
     def listAcmd(self, server_addr):
         msg = ""
-        for accomodation in self.accomodations.values():
-            msg += ("(" + str(accomodation[3])  + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
+        for index, accomodation in enumerate(self.accomodations.values()):
+            msg += ("(" + str(index) + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
         self.rdtSend(server_addr, msg.encode())
 
     def book(self, server_addr, msg):
