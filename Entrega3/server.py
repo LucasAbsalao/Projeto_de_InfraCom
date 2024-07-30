@@ -1,7 +1,6 @@
 import Udp
 
-
-socket0 = Udp.socketUdp("127.0.0.1", 5576, 1024)
+socket0 = Udp.socketUdp("127.0.0.1", 4890, 1024)
 indexCliente=0
 indexAccomodation=0
 
@@ -20,7 +19,10 @@ while True:
         socket0.logout(data[1] ,origin)
 
     elif(data[0] == 2):#create
-        print(data[1:].decode(), "quer criar acomodação")
+        try:
+            print(data[1:].decode(), "quer criar acomodação")
+        except:
+            print("Erro")
         indexAccomodation = indexAccomodation + socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
 
     elif(data[0] == 3):

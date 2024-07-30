@@ -1,10 +1,23 @@
-import Udp
+import Udp, threading, time
 
+myAddr = ("127.0.0.1", 6893)
+addr = ('127.0.0.1',4890)
 
-addr = ('127.0.0.1',5576)
-socket0 = Udp.socketUdp("127.0.0.1", 7404, 1024)
+socket0 = Udp.socketUdp(myAddr[0], myAddr[1], 1024)
+socket1 = Udp.socketUdp(myAddr[0], myAddr[1]+1, 1024)
+
 auxID = 0
 logged = False
+
+def recieveMsg():
+    while True:
+        data, origin = socket1.rdtRcv2()
+        if(origin != None):
+            print("\n\nNotificação:\n" + data.decode() + "\n-----------------------------------------------")
+        time.sleep(1)
+
+threadRcv = threading.Thread(target=recieveMsg,daemon = True)
+threadRcv.start()
 
 while True:
 

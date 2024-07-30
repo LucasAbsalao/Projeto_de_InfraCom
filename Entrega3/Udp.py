@@ -13,7 +13,7 @@ class socketUdp():
         self.clients={}
         self.accomodations ={}
         self.reservas= {}
-        self.seqNumber = 1
+        self.bufferSeq=[]
         self.numRsv = 0
 
 
@@ -22,14 +22,16 @@ class socketUdp():
 
     # ============================================================================================
 
-    def allOperations(self, adress, data):
-        message= data.decode()
-        command, *other_commands= message.split()
+    def numSeq(self, addr, flag):
+        for end in self.bufferSeq:
+            if addr == end[0]:
+                temp = end[1]
+                if(flag==True):
+                    end[1]= 1 - end[1]
+                return temp
 
-
-        if command =="login":
-            self.lo
-        ## isso tá errado
+        self.bufferSeq.append([addr,0])
+        return 0
 
     def login(self, username,clientID,server_addr):
         print("entrou no login")
@@ -131,9 +133,9 @@ class socketUdp():
         if(aux):
             self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationInfo, clientID]
             self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
-            #for clientes in self.clients.values():
-                #if clientes[1]!=clientID:
-                    #self.rdtSend(server_addr, ("["+clientes[0]+"/"+str(clientes[2])+"]" + "acomodação de nome e localização: "+accomodationName+" "+accomodationLocal+"foi criado pelo cliente "+ str(clientID)).encode())
+            for clientes in self.clients.values():
+                if clientes[1]!=clientID and clientes[2] == True:
+                    self.rdtSend((clientes[3][0],clientes[3][1]+1), ("["+clientes[0]+"/"+str(clientes[2])+"]" + "acomodação de nome e localização: "+accomodationName+" "+accomodationLocal+"foi criado pelo cliente "+ str(clientID)).encode())
             return 1
 
         else:
@@ -199,24 +201,27 @@ class socketUdp():
             return data, origin
         except:
             #print("tempo de requisição expirado")
-            return b'\xFF', "Null"  # Caso não receba mensagem retorne "11111111"
+            return b'\xFF', None  # Caso não receba mensagem retorne "11111111"
 
     # ============================================================================================
 
    
     def rdtSend(self, server_addr: tuple[str, int], msg: bytes):  # Ao ser chamado envia a mensagem e aguarda uma confirmação
 
-        self.seqNumber = 1 - self.seqNumber 
 
         while True:
-            self.sendMsg(server_addr, (self.seqNumber).to_bytes() + msg)  # Concatena o número de sequência ao início da mensagem
-            #print("Remetente: enviando seq ", self.seqNumber, "\nEsperando confirmação")
+            
+            seqNumber = self.numSeq(server_addr, False)
+
+            self.sendMsg(server_addr, (seqNumber).to_bytes() + msg)  # Concatena o número de sequência ao início da mensagem
+            #print("Remetente: enviando seq ", seqNumber, "\nEsperando confirmação")
 
             ans, origin = self.recMsg()  # Espera pela confirmação
 
             #print("Cliente: ", ans[0])
-            if ans[0] == self.seqNumber:
-                #print("Remetente: Ack recebido ", self.seqNumber)
+            if ans[0] == seqNumber:
+                #print("Remetente: Ack recebido ", seqNumber)
+                self.numSeq(server_addr,True)
                 break  # Confirmação recebida
             # if ans[0] == 255:
             #    print("Timeout!\nPronto para reenviar")
@@ -225,22 +230,43 @@ class socketUdp():
 
     def rdtRcv(self):
 
-        self.seqNumber = 1 - self.seqNumber 
+        while True:
+
+            data, origin = self.recMsg()
+            seqNumber = self.numSeq(origin, False)
+            
+            if data[0] == seqNumber:  # Número de sequência esperado
+                # Envia a confirmação
+                self.sendMsg(origin, (seqNumber).to_bytes(1, 'big'))
+                #print("Destinatário: pacote recebido com sucesso\nEnviando ack: ", seqNumber)
+                self.numSeq(origin,True)
+                return data[1:], origin  # Retorna os dados sem o número de sequência
+            else:
+                # Retransmite o último ACK para sinalizar o remetente
+                if (origin != None):
+                    #print("Destinatário: pacote recebido com erro\nEnviando ack anterior: ", 1 - seqNumber)
+                    self.sendMsg(origin, (1 - seqNumber).to_bytes(1, 'big'))
+
+    def rdtRcv2(self):
 
         while True:
 
             data, origin = self.recMsg()
-
-            if data[0] == self.seqNumber:  # Número de sequência esperado
+            seqNumber = self.numSeq(origin, False)
+            
+            if data[0] == seqNumber:  # Número de sequência esperado
                 # Envia a confirmação
-                self.sendMsg(origin, (self.seqNumber).to_bytes(1, 'big'))
-                #print("Destinatário: pacote recebido com sucesso\nEnviando ack: ", self.seqNumber)
+                self.sendMsg(origin, (seqNumber).to_bytes(1, 'big'))
+                #print("Destinatário: pacote recebido com sucesso\nEnviando ack: ", seqNumber)
+                self.numSeq(origin,True)
                 return data[1:], origin  # Retorna os dados sem o número de sequência
             else:
                 # Retransmite o último ACK para sinalizar o remetente
-                if (origin != "Null"):
-                    #print("Destinatário: pacote recebido com erro\nEnviando ack anterior: ", 1 - self.seqNumber)
-                    self.sendMsg(origin, (1 - self.seqNumber).to_bytes(1, 'big'))
+                if (origin != None):
+                    #print("Destinatário: pacote recebido com erro\nEnviando ack anterior: ", 1 - seqNumber)
+                    self.sendMsg(origin, (1 - seqNumber).to_bytes(1, 'big'))
+                    return data, origin
+
 
     # ============================================================================================
 
