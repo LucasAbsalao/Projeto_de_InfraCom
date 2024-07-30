@@ -99,11 +99,10 @@ class socketUdp():
                 flag = True
                 break
         if(flag):
-            msg = name + "/" + str(server_addr[0]) + str(server_addr[1]) + "\n A reserva da acomodação" + str(accomodationID) + "na data" + str(date) + "foi cancelada!"
-            print(msg)
+            msg = "[" + name + "/" +  str(server_addr[0]) + str(server_addr[1]) + "]" + " A reserva da acomodação " + str(accomodationID) + " na data " + str(date) + " foi cancelada!"
         else:
-            msg = "Reserva não Encontrada"
-            print(msg)
+            msg ="[" + name + "/" +  str(server_addr[0]) + str(server_addr[1]) + "]" + " Reserva não Encontrada!"
+        return msg
 
     
     def createAccomodations(self,accomodationsData,clientID, accomodationID,server_addr):
@@ -154,6 +153,17 @@ class socketUdp():
             msg += ("(" + str(index) + ") " +accomodation[0] + ", " + accomodation[2] + ", Local: " + accomodation[1] +  "\n")
         self.rdtSend(server_addr, msg.encode())
 
+    def listMyAcmd(self, clientID, server_addr):
+        msg = ""
+        for index, acm in enumerate(self.accomodations.values()):
+            if (acm[3]) == int(clientID):
+                msg += ("(" + str(index) + ") " + acm[0] + ", " + acm[2] + ", Local: " + acm[1] + "\n")
+                msg += "Reservas dessa acomodação: \n"
+                for rsv in self.reservas.values():
+                    if(rsv[1] == index):
+                        msg += "Por " + str(rsv[3]) + "(" + str(self.clients[rsv[0]][3]) + ")" + " na data " + str(rsv[2]) + "\n"
+        return msg
+
     def book(self, server_addr, msg):
         idClt = msg[1] 
         idAcmd = msg[2]
@@ -161,7 +171,7 @@ class socketUdp():
         mes = msg[4]
         ano = msg[5] + 2000
         nome = msg[6:].decode()
-        
+
         flag=True
         for reserva in self.reservas.values():
             if(idAcmd == reserva[1]):
@@ -169,9 +179,12 @@ class socketUdp():
                     flag = False
                     break
         if(flag):
-            self.reservas[self.numRsv] = [idClt, idAcmd, (dia,mes,ano), nome]
-            self.numRsv += 1
-            self.rdtSend(server_addr, "Sua reserva está confirmada".encode())
+            if (idClt != self.accomodations[idAcmd][3]):
+                self.reservas[self.numRsv] = [idClt, idAcmd, (dia,mes,ano), nome]
+                self.numRsv += 1
+                self.rdtSend(server_addr, "Sua reserva está confirmada".encode())
+            else:
+                self.rdtSend(server_addr,"Não é possível reservar sua própria acomodação!".encode())
         else:
             self.rdtSend(server_addr, "Não foi possível realizar sua reserva, verifique os dados e tente novamente".encode())
 

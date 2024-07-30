@@ -116,11 +116,22 @@ while True:
     elif (comand == "cancel"):
         if(logged):
             accomodationID = input("Digite o ID da acomodação: ")
-            dia = input("Digite o dia da acomodação: ")
-            mes = input("Digite o mes da acomodação: ")
-            ano = input("Digite o ano da acomodação: ")
+            dia = input("Digite o dia da reserva: ")
+            mes = input("Digite o mes da reserva: ")
+            ano = input("Digite o ano da reserva: ")
             date = dia + mes + ano
             socket0.rdtSend(addr, b'\x06' + auxID.to_bytes(1, 'big') + date.encode() + accomodationID.encode())
+            msg, _ = socket0.rdtRcv()
+            msgs = msg.decode()
+            print(msgs)
+
+    elif (comand == "list:myacmd"):
+        if (logged):
+            socket0.rdtSend(addr, b'\x07' + auxID.to_bytes(1, 'big'))
+            data, origin = socket0.rdtRcv()
+            print("Minhas Acomodações:\n")
+            print(data.decode())
+            print("-------------------")
 
     elif (comand == "quit"):
         if(logged):
