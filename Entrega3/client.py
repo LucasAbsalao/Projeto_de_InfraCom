@@ -1,10 +1,23 @@
-import Udp
+import Udp, threading, time
 
+myAddr = ("127.0.0.1", 6893)
+addr = ('127.0.0.1',4899)
 
-addr = ('127.0.0.1',5576)
-socket0 = Udp.socketUdp("127.0.0.1", 7404, 1024)
+socket0 = Udp.socketUdp(myAddr[0], myAddr[1], 1024)
+socket1 = Udp.socketUdp(myAddr[0], myAddr[1]+1, 1024)
+
 auxID = 0
 logged = False
+
+def recieveMsg():
+    while True:
+        data, origin = socket1.rdtRcv2()
+        if(origin != None):
+            print("\n*  " + data.decode() + "\n> ", end="")
+        time.sleep(1)
+
+threadRcv = threading.Thread(target=recieveMsg,daemon = True)
+threadRcv.start()
 
 while True:
 
@@ -39,7 +52,6 @@ while True:
             accomodationInfo= input("Digite informações da acomodação: ")
             message=accomodationName + "#" + accomodationLocal + "#" + accomodationInfo
 
-            print(message)
             socket0.rdtSend(addr, b'\x02' + auxID.to_bytes(1, 'big') + message.encode())
             data, origin = socket0.rdtRcv()
             print(data.decode())
@@ -58,9 +70,7 @@ while True:
     elif(comand == "list:acmd"):
         socket0.rdtSend(addr, b'\x04')
         data, origin = socket0.rdtRcv()
-        print("Locais disponíveis:\n")
-        print(data.decode())
-        print("-------------------")
+        print("Locais disponíveis:\n"+ data.decode() + "---------------------")
 
     elif(comand == "book"):
 
@@ -116,11 +126,22 @@ while True:
     elif (comand == "cancel"):
         if(logged):
             accomodationID = input("Digite o ID da acomodação: ")
-            dia = input("Digite o dia da acomodação: ")
-            mes = input("Digite o mes da acomodação: ")
-            ano = input("Digite o ano da acomodação: ")
+            dia = input("Digite o dia da reserva: ")
+            mes = input("Digite o mes da reserva: ")
+            ano = input("Digite o ano da reserva: ")
             date = dia + mes + ano
             socket0.rdtSend(addr, b'\x06' + auxID.to_bytes(1, 'big') + date.encode() + accomodationID.encode())
+            msg, _ = socket0.rdtRcv()
+            msgs = msg.decode()
+            print(msgs)
+
+    elif (comand == "list:myacmd"):
+        if (logged):
+            socket0.rdtSend(addr, b'\x07' + auxID.to_bytes(1, 'big'))
+            data, origin = socket0.rdtRcv()
+            print("Minhas Acomodações:\n")
+            print(data.decode())
+            print("-------------------")
 
     elif (comand == "quit"):
         if(logged):
@@ -130,7 +151,7 @@ while True:
         break
 
     elif (comand == "help"):
-        print("Comandos:\n 'quit' para sair\n 'login' para logar\n 'logout' para sair da conta\n 'list:acmd' para ver as acomodações disponíveis\n 'list:myrsv' para conferir suas reservas\n 'create' para anunciar uma acomodação\n 'book' para fazer uma reserva\n 'cancel' para cancelar reserva")
+        print("Comandos:\n 'quit' para sair\n 'login' para logar\n 'logout' para sair da conta\n 'list:acmd' para ver as acomodações disponíveis\n 'list:myacmd' para as suas acomodações\n 'list:myrsv' para conferir suas reservas\n 'create' para anunciar uma acomodação\n 'book' para fazer uma reserva\n 'cancel' para cancelar reserva")
 
     else:
         print("comando não reconhecido, digite help por ajuda")

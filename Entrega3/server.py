@@ -1,7 +1,6 @@
 import Udp
 
-
-socket0 = Udp.socketUdp("127.0.0.1", 5576, 1024)
+socket0 = Udp.socketUdp("127.0.0.1", 4899, 1024)
 indexCliente=0
 indexAccomodation=0
 
@@ -18,10 +17,12 @@ while True:
     elif(data[0] == 1): #logout
         print(data[1:].decode(), "usuario saindo")
         socket0.logout(data[1] ,origin)
-        break
 
     elif(data[0] == 2):#create
-        print(data[1:].decode(), "quer criar acomodação")
+        try:
+            print(data[1:].decode(), "quer criar acomodação")
+        except:
+            print("Erro")
         indexAccomodation = indexAccomodation + socket0.createAccomodations(data[2:].decode(),data[1], indexAccomodation,origin)
 
     elif(data[0] == 3):
@@ -33,7 +34,7 @@ while True:
         socket0.listAcmd(origin)
 
     elif(data[0] == 5):
-        print("pedido de reseva")
+        print("pedido de reserva")
         socket0.book(origin, data)
 
     elif(data[0] == 6):
@@ -41,8 +42,13 @@ while True:
         datanf = datas[:8]
         dataf = (int(datanf[:2]), int(datanf[2:4]), int(datanf[4:]))
         print("pedido de cancelamento")
-        print("FUDIDO: ", datas[8])
-        socket0.cancel(data[1], datas[8], dataf, origin)
+        msg = socket0.cancel(data[1], datas[8], dataf, origin)
+        socket0.rdtSend(origin, msg.encode())
+
+    elif(data[0] == 7):
+        msg = socket0.listMyAcmd(data[1],origin)
+        socket0.rdtSend(origin, msg.encode())
+
 
     print("Contas: ", socket0.clients)
     print("Acomodações: ", socket0.accomodations)
