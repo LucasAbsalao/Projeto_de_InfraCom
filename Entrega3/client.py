@@ -1,7 +1,7 @@
 import Udp, threading, time
 
 myAddr = ("127.0.0.1", 6893)
-addr = ('127.0.0.1',4890)
+addr = ('127.0.0.1',4899)
 
 socket0 = Udp.socketUdp(myAddr[0], myAddr[1], 1024)
 socket1 = Udp.socketUdp(myAddr[0], myAddr[1]+1, 1024)
@@ -13,7 +13,7 @@ def recieveMsg():
     while True:
         data, origin = socket1.rdtRcv2()
         if(origin != None):
-            print("\n\nNotificação:\n" + data.decode() + "\n-----------------------------------------------")
+            print("\n*  " + data.decode() + "\n> ", end="")
         time.sleep(1)
 
 threadRcv = threading.Thread(target=recieveMsg,daemon = True)
@@ -52,7 +52,6 @@ while True:
             accomodationInfo= input("Digite informações da acomodação: ")
             message=accomodationName + "#" + accomodationLocal + "#" + accomodationInfo
 
-            print(message)
             socket0.rdtSend(addr, b'\x02' + auxID.to_bytes(1, 'big') + message.encode())
             data, origin = socket0.rdtRcv()
             print(data.decode())
@@ -71,9 +70,7 @@ while True:
     elif(comand == "list:acmd"):
         socket0.rdtSend(addr, b'\x04')
         data, origin = socket0.rdtRcv()
-        print("Locais disponíveis:\n")
-        print(data.decode())
-        print("-------------------")
+        print("Locais disponíveis:\n"+ data.decode() + "---------------------")
 
     elif(comand == "book"):
 
@@ -154,7 +151,7 @@ while True:
         break
 
     elif (comand == "help"):
-        print("Comandos:\n 'quit' para sair\n 'login' para logar\n 'logout' para sair da conta\n 'list:acmd' para ver as acomodações disponíveis\n 'list:myrsv' para conferir suas reservas\n 'create' para anunciar uma acomodação\n 'book' para fazer uma reserva\n 'cancel' para cancelar reserva")
+        print("Comandos:\n 'quit' para sair\n 'login' para logar\n 'logout' para sair da conta\n 'list:acmd' para ver as acomodações disponíveis\n 'list:myacmd' para as suas acomodações\n 'list:myrsv' para conferir suas reservas\n 'create' para anunciar uma acomodação\n 'book' para fazer uma reserva\n 'cancel' para cancelar reserva")
 
     else:
         print("comando não reconhecido, digite help por ajuda")

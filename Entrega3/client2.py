@@ -1,7 +1,7 @@
 import Udp, threading, time
 
-myAddr = ("127.0.0.1", 7369)
-addr = ('127.0.0.1',4890)
+myAddr = ("127.0.0.1", 6873)
+addr = ('127.0.0.1',4899)
 
 socket0 = Udp.socketUdp(myAddr[0], myAddr[1], 1024)
 socket1 = Udp.socketUdp(myAddr[0], myAddr[1]+1, 1024)
@@ -13,7 +13,7 @@ def recieveMsg():
     while True:
         data, origin = socket1.rdtRcv2()
         if(origin != None):
-            print("\n\nNotificação:\n" + data.decode() + "\n-----------------------------------------------")
+            print("\n*  " + data.decode() + "\n> ", end="")
         time.sleep(1)
 
 threadRcv = threading.Thread(target=recieveMsg,daemon = True)
@@ -52,7 +52,6 @@ while True:
             accomodationInfo= input("Digite informações da acomodação: ")
             message=accomodationName + "#" + accomodationLocal + "#" + accomodationInfo
 
-            print(message)
             socket0.rdtSend(addr, b'\x02' + auxID.to_bytes(1, 'big') + message.encode())
             data, origin = socket0.rdtRcv()
             print(data.decode())
@@ -158,4 +157,3 @@ while True:
 
     else:
         print("comando não reconhecido, digite help por ajuda")
-

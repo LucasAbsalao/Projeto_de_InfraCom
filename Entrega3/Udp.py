@@ -40,50 +40,27 @@ class socketUdp():
             print(cliente[0])
             if(cliente[0]==username):
                 if(cliente[2]==True):
-                    self.rdtSend(server_addr, b'\xFF' + "Usuario já está online".encode())
+                    self.rdtSend(server_addr, b'\xFF' + "Usuário já está online, não foi possível realizar a ação".encode())
                 else:
                     cliente[2]=True
                     cliente[3]=server_addr
-                    self.rdtSend(server_addr,cliente[1].to_bytes(1,'big')+"Usuario ".encode())
+                    self.rdtSend(server_addr,cliente[1].to_bytes(1,'big')+"Usuário conectado".encode())
                 flag=False
                 break
 
         if(flag):
             self.clients[clientID]=[username, clientID, True, server_addr]
-            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
+            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuário cadastrado".encode())
             return 1
         return 0
-
-    '''def login(self, username,clientID,server_addr):
-        print("entrou no login")
-        flagUsername=True
-        flagIP=True
-        for cliente in self.clients.values():
-            print(cliente[0])
-            if(cliente[0]==username):
-                self.rdtSend(server_addr, clientID.to_bytes(1,'big')+"Usuario ja presente na lista".encode())
-                flagUsername=False
-
-        for clienteID in self.clients.values(): #Mudar o username desse cliente
-            if server_addr == clienteID[2]:
-                self.rdtSend(server_addr, clienteID[1].to_bytes(1,'big')+"Username do client foi trocado".encode())
-                print(clienteID[2])
-                clienteID[0] = username
-                flagIP=False
-
-        if flagUsername==True and flagIP == True:
-            self.clients[clientID]= [username, clientID, server_addr]
-            self.rdtSend(server_addr,clientID.to_bytes(1,'big')+"Usuario cadastrado".encode())
-            return 1
-        else: return 0'''
 
     def logout(self, clientID, server_addr):
         username = self.get_username(clientID)
         if username!= None:
             self.clients[clientID][2]=False
-            self.rdtSend(server_addr, "Usuario desconectado".encode())
+            self.rdtSend(server_addr, "Usuário desconectado".encode())
         else:
-            self.rdtSend(server_addr, "Usuario não encontrado".encode())
+            self.rdtSend(server_addr, "Usuário não encontrado".encode())
 
     def get_username(self, clientID):
         for cliente in self.clients.values():
@@ -96,7 +73,7 @@ class socketUdp():
         name = self.clients[clientID][0]
         flag = False
         for rsv in self.reservas.items():
-            if (rsv[1][1]==int(accomodationID) and rsv[1][3]==name and rsv[1][2]==date):
+            if (rsv[1][1]==int(accomodationID) and rsv[1][2]==date):
                 del self.reservas[rsv[0]]
                 flag = True
                 break
@@ -104,12 +81,12 @@ class socketUdp():
             idCreator = self.accomodations[int(accomodationID)][3]
             creator = self.clients[idCreator]
             msg = " A reserva da acomodação " + str(accomodationID) + " na data " + str(date) + " foi cancelada!"
-            msg2 = "[" + creator[0] + "/" + str(creator[3]) + "] novas disponibilidades para a acomodação " + self.accomodations[int(accomodationID)][0] + " " + self.accomodations[int(accomodationID)][1] + " " +self.accomodations[int(accomodationID)][2]
-            msg3 = "[" + name + "/" + str(server_addr[0]) + ", " + str(server_addr[1]) + "] cancelou a reserva na sua acomodacao " + self.accomodations[int(accomodationID)][0] + " na data " + str(date)
+            msg2 = "[" + creator[0] + "/" + str(creator[3]) + "] Novas datas disponíveis para a acomodação " + self.accomodations[int(accomodationID)][0] + " " + self.accomodations[int(accomodationID)][1] + " " + self.accomodations[int(accomodationID)][2]
+            msg3 = "[" + name + "/" + str(server_addr[0]) + ", " + str(server_addr[1]) + "] Cancelou a reserva na sua acomodação " + self.accomodations[int(accomodationID)][0] + " na data " + str(date)
 
             self.rdtSend((creator[3][0], creator[3][1]+1), msg3.encode())
             for clientes in self.clients.values():
-                if(clientes[1]!=creator[1] and clientes[2]==True):
+                if(clientes[1]!=creator[1] and clientes[1]!= clientID and clientes[2]==True):
                     self.rdtSend((clientes[3][0],clientes[3][1]+1), msg2.encode())
         else:
             msg ="[" + name + "/" +  str(server_addr[0]) + str(server_addr[1]) + "]" + " Reserva não Encontrada!"
@@ -136,15 +113,15 @@ class socketUdp():
         aux=True
         for accomodation in self.accomodations.values():
             if(accomodationName==accomodation[0] and accomodationLocal==accomodation[1]):
-                self.rdtSend(server_addr, "acomodação já foi criada".encode())
+                self.rdtSend(server_addr, "Acomodação já foi criada".encode())
                 aux = False
 
         if(aux):
             self.accomodations[accomodationID]=[accomodationName,accomodationLocal,accomodationInfo, clientID]
-            self.rdtSend(server_addr, ("acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
+            self.rdtSend(server_addr, ("Acomodação de nome : " + accomodationName + " " + "foi criada com sucesso").encode())
             for clientes in self.clients.values():
                 if clientes[1]!=clientID and clientes[2] == True:
-                    self.rdtSend((clientes[3][0],clientes[3][1]+1), ("["+self.clients[clientID][0]+"/"+str(self.clients[clientID][3])+"]" + " acomodação de nome e localização: "+accomodationName+" "+accomodationLocal+" foi criado pelo cliente "+ str(clientID)).encode())
+                    self.rdtSend((clientes[3][0],clientes[3][1]+1), ("["+self.clients[clientID][0]+" ("+str(clientID) +")/"+str(self.clients[clientID][3])+"]" + " Acomodação: "+accomodationName+", "+accomodationLocal+", disponível para reserva." ).encode())
             return 1
 
         else:
@@ -195,7 +172,7 @@ class socketUdp():
                 self.numRsv += 1
                 self.rdtSend(server_addr, "Sua reserva está confirmada".encode())
                 acmdCreator = self.clients[self.accomodations[idAcmd][3]]
-                msg = "[" + self.clients[idClt][0] + "/" + str(self.clients[idClt][3]) + "] reservou a acomodacao " + self.accomodations[idAcmd][0]
+                msg = "[" + self.clients[idClt][0] + "/" + str(self.clients[idClt][3]) + "] Reservou a acomodação " + self.accomodations[idAcmd][0]
                 self.rdtSend((acmdCreator[3][0], acmdCreator[3][1] + 1), msg.encode())
 
             else:
